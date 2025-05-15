@@ -1,0 +1,25 @@
+{
+  "name": "eshop",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "backend of the eshop",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.14.3",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "app.js"
+  }
+}
