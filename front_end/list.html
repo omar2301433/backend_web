@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PC Parts Shop</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .product { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 8px; display: flex; gap: 10px; }
+    .product img { width: 100px; height: auto; border-radius: 4px; }
+    .product-details { flex-grow: 1; }
+    .product-name { font-weight: bold; font-size: 18px; }
+    .product-price { color: green; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Available PC Parts</h1>
+  <div id="product-list"></div>
+
+  <script>
+    const API_URL = "http://localhost:3000/api/v1/product";
+
+    fetch(API_URL)
+      .then(response => response.json())
+      .then(products => {
+        const productList = document.getElementById("product-list");
+
+        products.forEach(product => {
+          const productDiv = document.createElement("div");
+          productDiv.className = "product";
+
+          productDiv.innerHTML = `
+            <img src="${product.image_url}" alt="${product.name}">
+            <div class="product-details">
+              <div class="product-name">${product.name}</div>
+              <div class="product-price">$${product.price || "N/A"}</div>
+              <div class="product-description">${product.description || "No description."}</div>
+            </div>
+          `;
+
+          productList.appendChild(productDiv);
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching products:", error);
+      });
+  </script>
+</body>
+</html>

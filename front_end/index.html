@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Product - PC Parts Shop</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      max-width: 500px;
+      margin: auto;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #response-message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Add New Product</h1>
+
+  <form id="product-form">
+    <input type="text" name="name" placeholder="Product Name" required />
+    <input type="text" name="brand" placeholder="Brand" required />
+    <input type="number" name="price" placeholder="Price" required />
+    <input type="text" name="image_url" placeholder="Image URL" />
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="category" placeholder="Category ID" required />
+    <input type="number" name="quantity" placeholder="Stock Quantity" required />
+    <button type="submit">Submit Product</button>
+  </form>
+
+  <div id="response-message"></div>
+
+  <div id="product-list">
+  <a href="list.html">
+    <button type="button">Go to Product List</button>
+  </a>
+
+  <div id="product-delete">
+    
+  <a href="delete.html">
+    <button type="button">delete page</button>
+  </a>
+</div>
+
+
+  </div>
+
+  <script>
+    const form = document.getElementById("product-form");
+    const messageBox = document.getElementById("response-message");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const productData = {
+        name: formData.get("name"),
+        brand: formData.get("brand"),
+        price: parseFloat(formData.get("price")),
+        image_url: formData.get("image_url"),
+        description: formData.get("description"),
+        category: formData.get("category"),
+        quantity: parseInt(formData.get("quantity")),
+      };
+
+      fetch("http://localhost:3000/api/v1/product", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(productData)
+      })
+      .then(async (response) => {
+        const data = await response.json();
+        if (response.ok) {
+          messageBox.innerText = "✅ Product added successfully!";
+          messageBox.style.color = "green";
+          form.reset();
+        } else {
+          throw new Error(data.message || "Failed to add product.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        messageBox.innerText = "❌ " + error.message;
+        messageBox.style.color = "red";
+      });
+    });
+  </script>
+
+</body>
+</html>
