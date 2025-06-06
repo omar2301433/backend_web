@@ -42,6 +42,38 @@ router.post(`/`, async (req, res) => {
   res.send(user);
 });
 
+router.delete(`/:id`, async (req, res) => {
+  const user = await User.findByIdAndRemove(req.params.id).select("-password_hash -__v ");
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+  return res.status(200).json({ success: true, message: "The user is deleted" });
+});
+
+router.put(`/:id`, async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    {
+      username: req.body.username,
+      email: req.body.email,
+      password_hash: bcrypt.hashSync(req.body.password, 7),
+      phone: req.body.phone,
+      street: req.body.street,
+      apartment: req.body.apartment,
+      zip: req.body.zip,
+      city: req.body.city,
+      country: req.body.country,
+      is_admin: req.body.is_admin,
+    },
+    { new: true }
+  );
+  if (!user) {
+    return res.status(500).send("The user cannot be updated");
+  }
+  res.send(user);
+} );
+
+
 router.post(`/login`, async (req, res) => {
   const user = await User.findOne({
     email: req.body.email,
