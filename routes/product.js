@@ -1,11 +1,11 @@
 const {Product} = require("../Data/product");
 const {Category} = require("../Data/category");
+const { Brand } = require("../Data/brand");
+
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const multer = require('multer');
-
-
 
 const FILE_TYPE_MAP = {
     'image/png': 'png',
@@ -33,6 +33,7 @@ const storage = multer.diskStorage({
 
 const uploadOptions = multer({ storage: storage });
 
+
 router.get(`/`, async (req, res) => {
   let filter = {};
   if (req.query.categories) {
@@ -45,6 +46,56 @@ router.get(`/`, async (req, res) => {
   }
   res.send(productList);
 });
+
+
+
+router.get('/search', async (req, res) => {
+  const searchTerm = req.query.q;
+  if (!searchTerm) {
+    console.log("Search term is missing.");
+    return res.status(400).json({ success: false, message: "Search term is required" });
+  }
+
+  console.log("Search term received:", searchTerm);
+
+  try {
+    // Load all products and populate related fields
+    const allProducts = await Product.find({})
+      .populate('category')
+      .populate('brand');
+
+    console.log(`Found ${allProducts.length} products in DB`);
+
+    const filtered = allProducts.filter(product => {
+      try {
+        const name = (product.name || '').toLowerCase();
+        const description = (product.description || '').toLowerCase();
+        const specs = (product.specs || '').toLowerCase();
+        const categoryName = (product.category?.name || '').toLowerCase();
+        const brandName = (product.brand?.name || '').toLowerCase();
+
+        return [name, description, specs, categoryName, brandName].some(field =>
+          field.includes(searchTerm.toLowerCase())
+        );
+      } catch (err) {
+        console.error("Error in filtering loop:", err.message);
+        return false;
+      }
+    });
+
+    console.log(`Filtered to ${filtered.length} matching products`);
+
+    res.json({ success: true, data: filtered });
+  } catch (err) {
+    console.error("Search failed:", err.stack);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
+
+
+
+
+
 
 router.get(`/:id`, async (req, res) => {
   const product = await Product.findById(req.params.id).populate("category");
@@ -102,7 +153,7 @@ router.put("/:id", async (req, res) => {
     brand: req.body.brand,
     price: req.body.price,
     description: req.body.description,
-    image: req.body.image,
+    image_url: req.body.image_url,
     specs: req.body.specs,
     isFeatured: req.body.isFeatured,
     quantity: req.body.quantity,
@@ -146,7 +197,6 @@ router.get(`/get/featured/:count`, async (req, res) => {
   }
   res.send(products);
 });
-
 router.put(
     '/gallery-images/:id', 
     uploadOptions.array('images', 10), 
@@ -178,5 +228,6 @@ router.put(
         res.send(product);
     }
 )
+
 
 module.exports = router;

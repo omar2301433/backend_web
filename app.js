@@ -8,6 +8,17 @@ require("dotenv").config();
 const errorHandler = require("./helpers/error.handler");
 const authJwt = require("./helpers/jwt");
 
+const path = require('path');
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, 'front_end/web_proj')));
+
+// Optional: fallback to index.html for unmatched routes (like SPAs)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front_end/web_proj', 'index.html'));
+});
+
+
 app.use(cors());
 
 
@@ -19,6 +30,11 @@ app.use(morgan("tiny"));
 app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
 app.use(errorHandler);
 app.use(authJwt());
+app.use((req, res, next) => {
+  console.log('➡️ Request:', req.method, req.originalUrl);
+  next();
+});
+
 
 // routes
 const productRouter = require("./routes/product");
@@ -54,6 +70,9 @@ mongoose
   }).catch((err) => {
     console.log(err);
   });
+app.get('/', (req, res) => {
+  res.send('✅ API is running');
+});
 
   // server
 app.listen(3000, () => {
