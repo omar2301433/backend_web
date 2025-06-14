@@ -7,15 +7,19 @@ const cors = require("cors");
 require("dotenv").config();
 const errorHandler = require("./helpers/error.handler");
 const authJwt = require("./helpers/jwt");
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'));
+
 
 const path = require('path');
 
 // Serve static frontend files
-app.use(express.static(path.join(__dirname, 'front_end/web_proj')));
+app.use(express.static(path.join(__dirname, "front_end/web_proj")));
+
 
 // Optional: fallback to index.html for unmatched routes (like SPAs)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'front_end/web_proj', 'index.html'));
+  res.sendFile(path.join(__dirname, "front_end/web_proj", "index.html"));
 });
 
 
@@ -71,7 +75,7 @@ mongoose
     console.log(err);
   });
 app.get('/', (req, res) => {
-  res.send('✅ API is running');
+  res.send(' API is running');
 });
 
   // server

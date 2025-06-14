@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alien PC Parts</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+  />
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="logo">ALIEN</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="searchProduct.html">About</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="nav-icons">
+        <i class="fas fa-search"></i>
+        <i class="fas fa-shopping-cart"></i>
+      </div>
+    </nav>
+  </header>
+
+
+    <main>
+      <p id="message" style="color: red;"></p>
+
+       <div class="auth-form">
+    <h2>Login / Register</h2>
+    <form id="loginForm">
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required />
+  </div>
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+  </div>
+  <button type="submit">Sign In</button>
+  <p>Don't have an account? <a href="register.html">Register here</a></p>
+</form>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Please fill in both email and password");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/api/v1/user/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      document.getElementById('message').textContent = '🎉 Login successful!';
+     localStorage.setItem("token", data.token);
+
+      localStorage.setItem("isAdmin", data.isAdmin); // ✅ Save isAdmin flag
+      window.location.href = "index.html";
+    } else {
+      document.getElementById('message').textContent = '❌ ' + (data.message || "Login failed.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Error while logging in.");
+  }
+});
+</script>

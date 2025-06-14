@@ -373,85 +373,70 @@ searchStyle.textContent = `
         transform: translateY(0);
     }
 `;
-window.addEventListener('DOMContentLoaded', () => {
-    fetch('http://localhost:3000/api/v1/product')
-        .then(res => res.json())
-        .then(products => {
-            const featuredContainer = document.getElementById('featured-products-container');
-            featuredContainer.innerHTML = ''; // Clear any placeholder
 
-            const featuredProducts = products.filter(product => product.isFeatured);
 
-            featuredProducts.forEach(product => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <div class="product-image">
-                        <img src="${product.image_url}" alt="${product.name}">
-                    </div>
-                    <h3>${product.name}</h3>
-                    <p>${product.description}</p>
-                    <span class="price">${product.price.toFixed(2)} EGP</span>
-                    <button class="add-to-cart">Add to Cart</button>
-                `;
-                featuredContainer.appendChild(card);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading featured products:', error);
+
+
+
+ window.addEventListener('DOMContentLoaded', () => {
+      fetchFeaturedProducts();
+      fetchCategories();
+      fetchBrands();
+      fetchAllProducts();
+    });
+
+    function fetchFeaturedProducts() {
+  fetch('http://localhost:3000/api/v1/product?populate=brand,category')
+    .then(res => res.json())
+    .then(products => {
+      const featuredContainer = document.getElementById('featured-products-container');
+      featuredContainer.innerHTML = '';
+
+      const featuredProducts = products.filter(product => product.isFeatured);
+
+      featuredProducts.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <div class="product-card" onclick="window.location.href='productDetails.html?id=${product._id}'">
+            <img src="${product.image}" alt="${product.name}">
+            <h3>${product.name}</h3>
+            <p>${product.brand?.name || "Unknown Brand"}</p>
+            <p>Price: ${product.price} EGP</p>
+            <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(event)">Add to Cart</button>
+            <span class="cart-message" style="display:none;">✔ Added to Cart!</span>
+          </div>
+        `;
+        featuredContainer.appendChild(card);
+      });
+    })
+    .catch(error => {
+      console.error('Error loading featured products:', error);
+    });
+}
+
+
+
+
+    function fetchCategories() {
+      fetch('http://localhost:3000/api/v1/category')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('category-grid');
+      container.innerHTML = '';
+
+      data.forEach(category => {
+        const card = document.createElement('div');
+        card.className = 'category-card';
+
+        card.innerHTML = `
+          <img src="${category.image}" alt="${category.name}">
+          <h3>${category.name}</h3>
+        `;
+
+        card.addEventListener('click', () => {
+          window.location.href = `searchProduct.html?category=${category._id}`;
         });
-});
-document.addEventListener('DOMContentLoaded', () => {
-  fetchCategories();
-});
-
-function fetchCategories() {
-  fetch('http://localhost:3000/api/v1/category') // adjust base URL if needed
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById('category-grid');
-      container.innerHTML = '';
-
-      data.forEach(category => {
-        const card = document.createElement('div');
-        card.className = 'category-card';
-
-        card.innerHTML = `
-          <img src="${category.image}" alt="${category.name}">
-          <h3>${category.name}</h3>
-        `;
-
-        container.appendChild(card);
-      });
-    })
-    .catch(err => {
-      console.error('Error fetching categories:', err);
-    });
-    
-}
-
-
-window.addEventListener('DOMContentLoaded', () => {
-  fetchCategories();
-  fetchAllProducts();
-});
-
-// Fetch and render categories
-function fetchCategories() {
-  fetch('http://localhost:3000/api/v1/category')
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById('category-grid');
-      container.innerHTML = '';
-
-      data.forEach(category => {
-        const card = document.createElement('div');
-        card.className = 'category-card';
-
-        card.innerHTML = `
-          <img src="${category.image}" alt="${category.name}">
-          <h3>${category.name}</h3>
-        `;
 
         container.appendChild(card);
       });
@@ -461,15 +446,33 @@ function fetchCategories() {
     });
 }
 
-// Fetch and group all products by category
-function fetchAllProducts() {
-  fetch('http://localhost:3000/api/v1/product')
+
+    function fetchBrands() {
+      fetch('http://localhost:3000/api/v1/brand')
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('brand-grid');
+          container.innerHTML = '';
+
+          data.forEach(brand => {
+            const card = document.createElement('div');
+            card.className = 'brand-card';
+            card.innerHTML = `<h3>${brand.name}</h3>`;
+            container.appendChild(card);
+          });
+        })
+        .catch(err => {
+          console.error('Error fetching brands:', err);
+        });
+    }
+
+   function fetchAllProducts() {
+  fetch('http://localhost:3000/api/v1/product?populate=brand,category')
     .then(res => res.json())
     .then(products => {
       const container = document.getElementById('all-products-container');
-      container.innerHTML = '<h2>All Products</h2>';
-
       const grouped = {};
+
       products.forEach(product => {
         const category = product.category?.name || 'Others';
         if (!grouped[category]) grouped[category] = [];
@@ -493,13 +496,14 @@ function fetchAllProducts() {
           card.style.animationDelay = `${(i + 1) * 0.1}s`;
 
           card.innerHTML = `
-            <div class="product-image">
-              <img src="${product.image_url}" alt="${product.name}">
+            <div class="product-card" style="cursor: pointer;">
+              <img src="${product.image}" alt="${product.name}" onclick="window.location.href='productDetails.html?id=${product._id}'">
+              <h3 onclick="window.location.href='productDetails.html?id=${product._id}'">${product.name}</h3>
+              <p>${product.brand?.name || "Unknown Brand"}</p>
+              <p>Price: ${product.price} EGP</p>
+              <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(this)">Add to Cart</button>
+              <span class="cart-message" style="display:none;">✔ Added to Cart!</span>
             </div>
-            <h3>${product.name}</h3>
-            <span class="price">${product.price.toFixed(2)} EGP</span>
-            <button class="add-to-cart" onclick="addToCart(event)">Add to Cart</button>
-            <span class="cart-message" style="display:none;">✔ Added to Cart!</span>
           `;
 
           grid.appendChild(card);
@@ -512,15 +516,6 @@ function fetchAllProducts() {
     .catch(err => {
       console.error('Failed to load products:', err);
     });
-}
-
-function addToCart(event) {
-  const btn = event.target;
-  const message = btn.nextElementSibling;
-  message.style.display = 'inline';
-  setTimeout(() => {
-    message.style.display = 'none';
-  }, 2000);
 }
 
 
@@ -541,39 +536,127 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const searchTerm = params.get("q");
+  const categoryId = params.get("category");
 
-  if (searchTerm) {
-    try {
-      const res = await fetch(`http://localhost:3000/api/v1/product/search?q=${searchTerm}`);
-      const data = await res.json();
+  const container = document.getElementById("search-results-container");
+  container.innerHTML = "<p>Loading products...</p>";
 
-      if (data.success && data.data.length > 0) {
-        displayProducts(data.data);
-      } else {
-        document.getElementById("search-results-container").innerHTML = "<p>No products found.</p>";
-      }
-    } catch (error) {
-      console.error("Failed to fetch products", error);
-      document.getElementById("search-results-container").innerHTML = "<p>Error loading products.</p>";
+  try {
+    let apiUrl = "";
+
+    if (searchTerm) {
+      apiUrl = `http://localhost:3000/api/v1/product/search?q=${searchTerm}&populate=brand`;
+    } else if (categoryId) {
+      apiUrl = `http://localhost:3000/api/v1/product?category=${categoryId}&populate=brand`;
     }
+
+    if (!apiUrl) {
+      container.innerHTML = "<p>No search query provided.</p>";
+      return;
+    }
+
+    const res = await fetch(apiUrl);
+    const result = await res.json();
+
+    // ✅ Support both formats: direct array or { success: true, data: [...] }
+    const products = Array.isArray(result)
+      ? result
+      : result.success && Array.isArray(result.data)
+      ? result.data
+      : [];
+
+    if (products.length === 0) {
+      container.innerHTML = "<p>No products found.</p>";
+      return;
+    }
+
+    displayProducts(products);
+  } catch (error) {
+    console.error("Failed to fetch products", error);
+    container.innerHTML = "<p>Error loading products.</p>";
   }
 });
 
-
 function displayProducts(products) {
   const container = document.getElementById("search-results-container");
-  container.innerHTML = products.map(product => `
-    <div class="product-card">
-      <img src="${product.image_url}" alt="${product.name}">
-      <h3>${product.name}</h3>
-      <p>${product.brand?.name || "Unknown Brand"}</p>
-      <p>Price: ${product.price} EGP</p>
-    </div>
-  `).join("");
+
+  container.innerHTML = products
+    .map(product => `
+      <div class="product-card" onclick="window.location.href='productDetails.html?id=${product._id}'">
+        <img src="${product.image}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p>${product.brand?.name || "Unknown Brand"}</p>
+        <p>Price: ${product.price} EGP</p>
+        <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(event)">Add to Cart</button>
+        <span class="cart-message" style="display:none;">✔ Added to Cart!</span>
+      </div>
+    `)
+    .join("");
 }
+
+function addToCart(event) {
+  const btn = event.target;
+  const message = btn.nextElementSibling;
+  message.style.display = "inline";
+  setTimeout(() => {
+    message.style.display = "none";
+  }, 2000);
+}
+
 document.getElementById("searchButton").addEventListener("click", () => {
   const input = document.getElementById("searchInput").value.trim();
   if (input) {
     window.location.href = `searchProduct.html?q=${encodeURIComponent(input)}`;
   }
 });
+
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  const loginLink = document.getElementById("login-link");
+  const logoutLink = document.getElementById("logout-link");
+  const logoutMessage = document.getElementById("logout-message");
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+  if (loginLink && logoutLink) {
+    if (token) {
+      loginLink.style.display = "none";
+      logoutLink.style.display = "inline";
+
+      //  Only show admin link if logged in AND isAdmin
+      if (isAdmin) {
+        const adminLink = document.getElementById("admin-link");
+        if (adminLink) adminLink.style.display = "inline";
+      }
+
+    } else {
+      loginLink.style.display = "inline";
+      logoutLink.style.display = "none";
+
+      //  Hide admin link if logged out
+      const adminLink = document.getElementById("admin-link");
+      if (adminLink) adminLink.style.display = "none";
+    }
+
+    // Logout handler
+    logoutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAdmin");
+
+      if (logoutMessage) {
+        logoutMessage.style.display = "block";
+        setTimeout(() => {
+          logoutMessage.style.display = "none";
+          window.location.href = "login.html";
+        }, 2500);
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+  }
+});
+
+
+
+

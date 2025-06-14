@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Users</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="logo">ALIEN</a>
+      <div class="nav-links">
+        
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="searchProduct.html">About</a>
+      <a href="admin.html">Manage products</a>
+    </div>
+
+      
+      </div>
+      <div class="nav-icons">
+    
+      </div>
+    </nav>
+  </header>
+</head>
+<body>
+  <div class="admin-container">
+    <h2>User Management</h2>
+    
+    <div class="stats">
+      <p>Total Users: <span id="total-users">0</span></p>
+      <p>Admins: <span id="admin-count">0</span></p>
+      <p>Regular Users: <span id="regular-count">0</span></p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users-list"></tbody>
+    </table>
+  </div>
+
+  <script src="userManage.js"></script>
+</body>
+</html>
