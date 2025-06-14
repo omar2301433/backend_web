@@ -7,15 +7,20 @@ const cors = require("cors");
 require("dotenv").config();
 const errorHandler = require("./helpers/error.handler");
 const authJwt = require("./helpers/jwt");
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'));
+
 
 const path = require('path');
 
 // Serve static frontend files
-app.use(express.static(path.join(__dirname, 'front_end/web_proj')));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "front_end/web_proj")));
+
 
 // Optional: fallback to index.html for unmatched routes (like SPAs)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'front_end/web_proj', 'index.html'));
+  res.sendFile(path.join(__dirname, "front_end/web_proj", "index.html"));
 });
 
 
@@ -34,6 +39,15 @@ app.use((req, res, next) => {
   console.log('➡️ Request:', req.method, req.originalUrl);
   next();
 });
+app.use((err, req, res, next) => {
+  if (err.name === 'UnauthorizedError') {
+    // You can throttle logging here or only log once per time window
+    console.warn('Unauthorized access attempt:', req.path);
+    return res.status(401).json({ message: 'Invalid or missing token' });
+  }
+  next(err);
+});
+
 
 
 // routes
@@ -71,7 +85,7 @@ mongoose
     console.log(err);
   });
 app.get('/', (req, res) => {
-  res.send('✅ API is running');
+  res.send(' API is running');
 });
 
   // server

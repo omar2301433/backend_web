@@ -34,63 +34,62 @@ const storage = multer.diskStorage({
 const uploadOptions = multer({ storage: storage });
 
 
-router.get(`/`, async (req, res) => {
-  let filter = {};
-  if (req.query.categories) {
-    filter = { category: req.query.categories.split(",") };
-  }
-  const productList = await Product.find(filter).populate("category");
+router.get('/', async (req, res) => {
+  try {
+    const filter = {};
 
-  if (!productList) {
-    res.status(500).json({ success: false });
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    const products = await Product.find(filter)
+      .populate('brand')
+      .populate('category');
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
-  res.send(productList);
 });
-
 
 
 router.get('/search', async (req, res) => {
-  const searchTerm = req.query.q;
-  if (!searchTerm) {
-    console.log("Search term is missing.");
-    return res.status(400).json({ success: false, message: "Search term is required" });
-  }
-
-  console.log("Search term received:", searchTerm);
+  const query = req.query.q;
 
   try {
-    // Load all products and populate related fields
-    const allProducts = await Product.find({})
-      .populate('category')
-      .populate('brand');
+    const products = await Product.find({
+      name: { $regex: query, $options: 'i' }
+    }).populate('brand').populate('category'); // ✅ populate both
 
-    console.log(`Found ${allProducts.length} products in DB`);
-
-    const filtered = allProducts.filter(product => {
-      try {
-        const name = (product.name || '').toLowerCase();
-        const description = (product.description || '').toLowerCase();
-        const specs = (product.specs || '').toLowerCase();
-        const categoryName = (product.category?.name || '').toLowerCase();
-        const brandName = (product.brand?.name || '').toLowerCase();
-
-        return [name, description, specs, categoryName, brandName].some(field =>
-          field.includes(searchTerm.toLowerCase())
-        );
-      } catch (err) {
-        console.error("Error in filtering loop:", err.message);
-        return false;
-      }
-    });
-
-    console.log(`Filtered to ${filtered.length} matching products`);
-
-    res.json({ success: true, data: filtered });
-  } catch (err) {
-    console.error("Search failed:", err.stack);
-    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+    res.json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
+
+
+
+
+router.get('/', async (req, res) => {
+  try {
+    let query = Product.find();
+
+    // ✅ If query has populate=brand,category or similar
+    if (req.query.populate) {
+      const fields = req.query.populate.split(',');
+      fields.forEach(field => {
+        query = query.populate(field);
+      });
+    }
+
+    const products = await query;
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 
@@ -98,12 +97,19 @@ router.get('/search', async (req, res) => {
 
 
 router.get(`/:id`, async (req, res) => {
-  const product = await Product.findById(req.params.id).populate("category");
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate("category")
+      .populate("brand"); // ✅ This is needed
 
-  if (!product) {
-    res.status(500).json({ success: false });
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
-  res.send(product);
 });
 
 
@@ -137,7 +143,7 @@ router.post(`/`,uploadOptions.single('image'), async (req, res) => {
 });
 
 
-router.put("/:id", async (req, res) => {
+router.put("/:id",uploadOptions.single('image'), async (req, res) => {
   if(!mongoose.isValidObjectId(req.params.id)){
   return res.status(400).send("Invalid product id")
   }
@@ -166,15 +172,23 @@ router.put("/:id", async (req, res) => {
   res.send(product);
 });
 
+router.delete('/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
 
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
 
-router.delete("/:id", async (req, res) => {
-  const product = await Product.findByIdAndDelete(req.params.id);
-  if (!product) {
-    return res.status(500).send("The product cannot be delted");
+    res.status(200).json({ success: true, message: 'Product successfully deleted', data: product });
+  } catch (error) {
+    console.error(' Delete product failed:', error);
+    res.status(500).json({ success: false, message: 'Error deleting Product' });
   }
-  res.status(200).json({ success: true, message: "The product is deleted" });
 });
+
+
+
 
 
 router.get(`/get/count`, async (req, res) => {
@@ -197,6 +211,8 @@ router.get(`/get/featured/:count`, async (req, res) => {
   }
   res.send(products);
 });
+
+
 router.put(
     '/gallery-images/:id', 
     uploadOptions.array('images', 10), 
