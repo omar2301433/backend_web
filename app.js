@@ -8,6 +8,7 @@ require("dotenv").config();
 const errorHandler = require("./helpers/error.handler");
 const authJwt = require("./helpers/jwt");
 const methodOverride = require('method-override');
+
 app.use(methodOverride('_method'));
 
 
@@ -30,6 +31,7 @@ app.use(cors());
 
 
 // middleware
+
 app.use(bodyParser.json());
 app.use(morgan("tiny"));
 app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
